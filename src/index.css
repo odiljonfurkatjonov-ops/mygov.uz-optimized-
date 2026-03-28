@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	:root {
+		--font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+
+		--background: 210 40% 98%;
+		--foreground: 222 47% 11%;
+		--card: 0 0% 100%;
+		--card-foreground: 222 47% 11%;
+		--popover: 0 0% 100%;
+		--popover-foreground: 222 47% 11%;
+		--primary: 221 83% 53%;
+		--primary-foreground: 0 0% 100%;
+		--secondary: 214 32% 91%;
+		--secondary-foreground: 222 47% 11%;
+		--muted: 210 40% 96%;
+		--muted-foreground: 215 16% 47%;
+		--accent: 226 100% 94%;
+		--accent-foreground: 224 64% 33%;
+		--destructive: 0 84.2% 60.2%;
+		--destructive-foreground: 0 0% 98%;
+		--border: 214 32% 91%;
+		--input: 214 32% 91%;
+		--ring: 221 83% 53%;
+		--chart-1: 221 83% 53%;
+		--chart-2: 142 71% 45%;
+		--chart-3: 47 96% 53%;
+		--chart-4: 262 83% 58%;
+		--chart-5: 12 76% 61%;
+		--radius: 0.75rem;
+
+		--gov-dark: 216 56% 22%;
+		--gov-medium: 217 55% 33%;
+		--gov-light: 221 83% 53%;
+		--gov-accent: 226 100% 94%;
+		--success: 142 71% 45%;
+		--success-light: 138 76% 97%;
+	}
+
+	.dark {
+		--background: 222 47% 6%;
+		--foreground: 210 40% 98%;
+		--card: 222 47% 9%;
+		--card-foreground: 210 40% 98%;
+		--popover: 222 47% 9%;
+		--popover-foreground: 210 40% 98%;
+		--primary: 217 91% 60%;
+		--primary-foreground: 0 0% 100%;
+		--secondary: 217 33% 17%;
+		--secondary-foreground: 210 40% 98%;
+		--muted: 217 33% 17%;
+		--muted-foreground: 215 20% 65%;
+		--accent: 217 33% 17%;
+		--accent-foreground: 210 40% 98%;
+		--destructive: 0 62.8% 30.6%;
+		--destructive-foreground: 0 0% 98%;
+		--border: 217 33% 17%;
+		--input: 217 33% 17%;
+		--ring: 217 91% 60%;
+	}
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+
+	body {
+		@apply bg-background text-foreground font-inter;
+	}
+}
