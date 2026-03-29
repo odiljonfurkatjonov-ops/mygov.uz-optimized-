@@ -5,34 +5,12 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="https://base44.com/logo_v2.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="manifest" href="/manifest.json" />
-  <title>Base44 APP</title>
+  <title>Abdullajon AI</title>
 </head>
 
 <body>
   <div id="root"></div>
-  <script>
-    if (window.location.protocol === 'file:') {
-      const root = document.getElementById('root');
-      root.innerHTML = `
-        <main style="font-family: Arial, sans-serif; max-width: 720px; margin: 64px auto; padding: 0 20px; line-height: 1.5;">
-          <h1 style="margin-bottom: 12px;">This app needs the Vite dev server</h1>
-          <p style="margin-bottom: 12px;">
-            Opening <code>index.html</code> directly will show a blank page because the browser cannot load
-            the React entry file and Vite module imports from <code>file://</code>.
-          </p>
-          <p style="margin-bottom: 12px;">Run the project from the app folder with:</p>
-          <pre style="background: #f4f4f5; padding: 12px; border-radius: 8px; overflow: auto;">npm run dev</pre>
-          <p>Then open the local URL Vite prints, usually <code>http://localhost:5173</code>.</p>
-        </main>
-      `;
-    } else {
-      const script = document.createElement('script');
-      script.type = 'module';
-      script.src = '/src/main.jsx';
-      document.body.appendChild(script);
-    }
-  </script>
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 
 </html>
