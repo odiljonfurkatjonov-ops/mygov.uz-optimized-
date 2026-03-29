@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: mygov-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python api.py
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: CHAT_PROVIDER
+        value: xai
+      - key: XAI_MODEL
+        value: grok-4-1-fast
+      - key: XAI_BASE_URL
+        value: https://api.x.ai/v1
+      - key: XAI_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://mygov-frontend.onrender.com
+
+  - type: web
+    name: mygov-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://mygov-backend.onrender.com

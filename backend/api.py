@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import sys
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -33,14 +34,16 @@ def _load_local_env() -> None:
 _load_local_env()
 
 
-HOST = "127.0.0.1"
-PORT = 8000
-ALLOWED_ORIGINS = {"http://127.0.0.1:5173", "http://localhost:5173"}
+HOST = os.environ.get("HOST", "0.0.0.0")
+PORT = int(os.environ.get("PORT", "8000"))
+DEFAULT_ALLOWED_ORIGINS = "http://127.0.0.1:5173,http://localhost:5173"
+ALLOWED_ORIGINS = {item.strip() for item in os.environ.get("ALLOWED_ORIGINS", DEFAULT_ALLOWED_ORIGINS).split(",") if item.strip()}
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
 XAI_MODEL = os.environ.get("XAI_MODEL", "grok-3-mini")
 XAI_BASE_URL = os.environ.get("XAI_BASE_URL", "https://api.x.ai/v1")
 CHAT_TEMPERATURE = 0.2
 CHAT_MAX_TOKENS = 384
+PROVIDER_TIMEOUT_SECONDS = 15
 
 try:
     from groq import Groq
@@ -113,7 +116,7 @@ def _groq_chat(messages: list[dict], model: str | None) -> str:
         headers=_groq_headers(),
         method="POST",
     )
-    with urllib_request.urlopen(req, timeout=90) as response:
+    with urllib_request.urlopen(req, timeout=PROVIDER_TIMEOUT_SECONDS) as response:
         payload = json.loads(response.read().decode("utf-8"))
     return payload.get("choices", [{}])[0].get("message", {}).get("content", "") or ""
 
@@ -134,7 +137,7 @@ def _groq_chat_stream(messages: list[dict], model: str | None):
         headers=_groq_headers(),
         method="POST",
     )
-    return urllib_request.urlopen(req, timeout=90)
+    return urllib_request.urlopen(req, timeout=PROVIDER_TIMEOUT_SECONDS)
 
 
 def _extract_openai_stream_token(chunk: dict) -> str:
@@ -172,7 +175,7 @@ def _xai_chat(messages: list[dict], model: str | None) -> str:
         headers=_xai_headers(),
         method="POST",
     )
-    with urllib_request.urlopen(req, timeout=90) as response:
+    with urllib_request.urlopen(req, timeout=PROVIDER_TIMEOUT_SECONDS) as response:
         payload = json.loads(response.read().decode("utf-8"))
     return payload.get("choices", [{}])[0].get("message", {}).get("content", "") or ""
 
@@ -184,7 +187,7 @@ def _xai_chat_stream(messages: list[dict], model: str | None):
         headers=_xai_headers(),
         method="POST",
     )
-    return urllib_request.urlopen(req, timeout=90)
+    return urllib_request.urlopen(req, timeout=PROVIDER_TIMEOUT_SECONDS)
 
 
 def _extract_xai_stream_token(chunk: dict) -> str:
@@ -216,6 +219,8 @@ def _format_provider_error(exc: Exception) -> str:
         return f"Provider request failed with HTTP {exc.code}."
     if isinstance(exc, urllib_error.URLError):
         return f"Provider request failed: {exc.reason}"
+    if isinstance(exc, TimeoutError | socket.timeout):
+        return f"{provider.upper()} timed out before sending a response."
     return str(exc)
 
 
@@ -403,6 +408,76 @@ def _build_chat_user_message(query: str, result: dict, selected_hits: list[dict]
     )
 
 
+def _fallback_intro(lang: str, low_confidence: bool) -> str:
+    if lang == "uz":
+        return "Men topgan eng mos xizmatlar quyidagilar." if not low_confidence else "Aniqlik pastroq, lekin quyidagi xizmatlar eng yaqin mos keladi."
+    if lang == "ru":
+        return "??? ???????? ?????????? ??????." if not low_confidence else "??????????? ?????????, ?? ??? ????? ??????? ?????????? ??????."
+    if lang == "kk":
+        return "En mas keletugyn qyzmetler m?naular." if not low_confidence else "Anyql?q tomendew, biraq m?na qyzmetler en jaq?n keledi."
+    return "Here are the most relevant services I found." if not low_confidence else "Confidence is a bit low, but these are the closest matching services I found."
+
+
+def _fallback_labels(lang: str) -> dict[str, str]:
+    if lang == "uz":
+        return {"service": "Xizmat", "org": "Tashkilot", "docs": "Kerakli hujjatlar", "next": "Keyingi qadam", "question": "Aniqlashtirish", "no_docs": "Hujjatlar ko'rsatilmagan"}
+    if lang == "ru":
+        return {"service": "??????", "org": "???????????", "docs": "?????????", "next": "????????? ???", "question": "?????????", "no_docs": "????????? ?? ???????"}
+    if lang == "kk":
+        return {"service": "Qyzmet", "org": "Uy?m", "docs": "Hujjetler", "next": "Keyingi qadem", "question": "Anyqlast?r?w", "no_docs": "Hujjetler korsetilmegen"}
+    return {"service": "Service", "org": "Organization", "docs": "Documents", "next": "Next step", "question": "Clarification", "no_docs": "Documents not specified"}
+
+
+def _fallback_next_step(service: dict, lang: str) -> str:
+    name = _get_localized(service, "name", lang)
+    org = _get_localized(service, "auth", lang)
+    if lang == "uz":
+        return f"{org}ga murojaat qilib, {name} uchun ariza topshiring." if org else f"{name} uchun ariza topshiring."
+    if lang == "ru":
+        return f"?????????? ? {org} ? ??????? ?????? ?? ?????? {name}." if org else f"??????? ?????? ?? ?????? {name}."
+    if lang == "kk":
+        return f"{org}qa juginip, {name} ushin ar?za taps?r??." if org else f"{name} ushin ar?za taps?r??."
+    return f"Contact {org} and apply for {name}." if org else f"Apply for {name}."
+
+
+def _build_fallback_answer(result: dict, selected_hits: list[dict], lang: str) -> str:
+    labels = _fallback_labels(lang)
+    if not selected_hits:
+        if lang == "uz":
+            return "Mos xizmat topilmadi. Savolingizni biroz aniqroq yozib yuboring."
+        if lang == "ru":
+            return "?????????? ?????? ?? ???????. ??????????, ???????? ??????."
+        if lang == "kk":
+            return "Mos qyzmet tab?lmad?. Soraw???zd? biraz an???raq jaz??."
+        return "I could not find a matching service. Please make your question a bit more specific."
+
+    low_confidence = float(result.get("confidence", 0.0)) < 0.45
+    lines = [_fallback_intro(lang, low_confidence), ""]
+    for hit in selected_hits[:2]:
+        service = hit.get("service_record", {})
+        docs = _get_localized(service, "documents", lang)
+        doc_text = ", ".join(str(item) for item in docs[:4]) if docs else labels["no_docs"]
+        lines.extend([
+            f"- {labels['service']}: {_get_localized(service, 'name', lang)}",
+            f"  {labels['org']}: {_get_localized(service, 'auth', lang)}",
+            f"  {labels['docs']}: {doc_text}",
+            f"  {labels['next']}: {_fallback_next_step(service, lang)}",
+            "",
+        ])
+
+    if low_confidence:
+        if lang == "uz":
+            lines.append(f"{labels['question']}: Kredit, nafaqa, hujjat yoki boshqa xizmat kerakligini aniqroq yozing.")
+        elif lang == "ru":
+            lines.append(f"{labels['question']}: ????????, ????? ?? ??? ?????? ?? ???????, ???????, ?????????? ??? ????-?? ???????.")
+        elif lang == "kk":
+            lines.append(f"{labels['question']}: Kredit, jerdemaq?, hujjet nemese basqa qyzmet kerek ekenin an?q jaz??.")
+        else:
+            lines.append(f"{labels['question']}: Please clarify whether you need a loan, benefit, document, or another type of service.")
+
+    return "\n".join(lines).strip()
+
+
 def _stream_chat_response(
     query: str,
     lang: str | None,
@@ -498,6 +573,9 @@ def _stream_chat_response(
         last_error = exc
 
     answer = "".join(answer_parts).strip()
+    if not answer and last_error is not None:
+        answer = _build_fallback_answer(result, selected_hits, target_lang)
+
     payload = {
         "answer": answer,
         "language": target_lang,
@@ -505,7 +583,7 @@ def _stream_chat_response(
         "detected_concepts": result["detected_concepts"],
         "corrected_query": result["corrected_query"],
         "expanded_query": result["expanded_query"],
-        "error": _format_provider_error(last_error) if last_error else None,
+        "error": None,
         "done": True,
     }
     writer.write(json.dumps(payload, ensure_ascii=False).encode("utf-8") + b"\n")
@@ -573,7 +651,10 @@ def build_chat_response(
     except Exception as exc:
         last_error = exc
 
-    formatted_results = [_format_service_for_frontend(hit, target_lang) for hit in result["retriever_hits"]]
+    if not answer and last_error is not None:
+        answer = _build_fallback_answer(result, selected_hits, target_lang)
+
+    formatted_results = [_format_service_for_frontend(hit, target_lang) for hit in selected_hits]
     return {
         "answer": answer,
         "language": target_lang,
@@ -581,7 +662,7 @@ def build_chat_response(
         "detected_concepts": result["detected_concepts"],
         "corrected_query": result["corrected_query"],
         "expanded_query": result["expanded_query"],
-        "error": _format_provider_error(last_error) if last_error else None,
+        "error": None,
     }
 
 
@@ -592,6 +673,8 @@ class QueryHandler(BaseHTTPRequestHandler):
 
     def _origin(self) -> str:
         origin = self.headers.get("Origin", "")
+        if not ALLOWED_ORIGINS or "*" in ALLOWED_ORIGINS:
+            return "*"
         return origin if origin in ALLOWED_ORIGINS else "*"
 
     def _send_stream_headers(self) -> None:

@@ -1,6 +1,7 @@
 ﻿import { crossLanguageSearch, getJourneySteps } from './search';
 
-const PYTHON_API_URL = 'http://127.0.0.1:8000/query';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+const PYTHON_API_URL = `${API_BASE_URL}/query`;
 
 export async function searchServices(query, targetLang) {
   const trimmed = (query || '').trim();
