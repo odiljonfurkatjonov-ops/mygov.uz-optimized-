@@ -1,0 +1,127 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Outfit:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	:root {
+		--font-display: 'Outfit', 'DM Sans', 'Inter', system-ui, -apple-system, sans-serif;
+		--font-body: 'Inter', 'DM Sans', system-ui, -apple-system, sans-serif;
+		--font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+
+		--color-bg: #F8F9FC;
+		--color-surface: #FFFFFF;
+		--color-surface-alt: #EEF2FF;
+		--color-primary: #1D4ED8;
+		--color-primary-dark: #1E3A8A;
+		--color-primary-light: #DBEAFE;
+		--color-accent: #0EA5E9;
+		--color-success: #10B981;
+		--color-warning: #F59E0B;
+		--color-text-primary: #111827;
+		--color-text-secondary: #6B7280;
+		--color-text-inverse: #FFFFFF;
+		--color-border: #E5E7EB;
+		--color-border-focus: #1D4ED8;
+		--color-shadow: rgba(17, 24, 39, 0.08);
+
+		--cat-health: #10B981;
+		--cat-education: #8B5CF6;
+		--cat-tax: #F59E0B;
+		--cat-transport: #3B82F6;
+		--cat-housing: #EF4444;
+		--cat-employment: #06B6D4;
+		--cat-social: #EC4899;
+		--cat-justice: #6366F1;
+		--cat-environment: #22C55E;
+		--cat-default: #64748B;
+
+		--space-1: 8px;
+		--space-2: 16px;
+		--space-3: 24px;
+		--space-4: 32px;
+		--space-5: 48px;
+		--space-6: 64px;
+		--space-7: 96px;
+
+		--radius-sm: 6px;
+		--radius-md: 12px;
+		--radius-lg: 20px;
+		--radius-full: 9999px;
+
+		--shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.06);
+		--shadow-hover: 0 8px 24px rgba(17, 24, 39, 0.12);
+		--shadow-nav: 0 1px 0 #E5E7EB;
+
+		--transition-fast: 150ms ease;
+		--transition-normal: 250ms ease;
+		--transition-slow: 400ms ease;
+
+		--background: 225 40% 98%;
+		--foreground: 221 39% 11%;
+		--card: 0 0% 100%;
+		--card-foreground: 221 39% 11%;
+		--popover: 0 0% 100%;
+		--popover-foreground: 221 39% 11%;
+		--primary: 224 76% 48%;
+		--primary-foreground: 0 0% 100%;
+		--secondary: 226 100% 97%;
+		--secondary-foreground: 221 39% 11%;
+		--muted: 220 13% 96%;
+		--muted-foreground: 215 16% 47%;
+		--accent: 199 89% 48%;
+		--accent-foreground: 0 0% 100%;
+		--destructive: 0 84.2% 60.2%;
+		--destructive-foreground: 0 0% 98%;
+		--border: 220 13% 91%;
+		--input: 220 13% 91%;
+		--ring: 224 76% 48%;
+		--chart-1: 224 76% 48%;
+		--chart-2: 142 71% 45%;
+		--chart-3: 45 93% 47%;
+		--chart-4: 262 83% 58%;
+		--chart-5: 12 76% 61%;
+		--radius: 12px;
+	}
+
+	* {
+		@apply border-border outline-ring/50;
+	}
+
+	body {
+		background: var(--color-bg);
+		color: var(--color-text-primary);
+		font-family: var(--font-body);
+	}
+
+	*:focus-visible {
+		outline: 2px solid var(--color-border-focus);
+		outline-offset: 2px;
+	}
+
+	a {
+		color: inherit;
+		text-decoration: none;
+	}
+}
+
+@layer utilities {
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+	.no-scrollbar {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+	.hero-grid {
+		background-image: radial-gradient(circle, rgba(203, 213, 225, 0.4) 1px, transparent 1px);
+		background-size: 20px 20px;
+	}
+	.shadow-card {
+		box-shadow: var(--shadow-card);
+	}
+	.shadow-hover {
+		box-shadow: var(--shadow-hover);
+	}
+}

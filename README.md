@@ -1,39 +1,74 @@
-**Welcome to your Base44 project** 
+﻿# Gov Services App
 
-**About**
+This repo contains both the frontend (Vite/React) and backend (Python NLP + RAG) for the my.gov.uz assistant.
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+## Layout
 
-This project contains everything you need to run your app locally.
+- `frontend/` Vite React app
+- `backend/` Python NLP pipeline + API + RAG CLI
 
-**Edit the code in your local development environment**
+## Backend (Python)
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+1. Create/activate venv (optional but recommended)
+2. Install deps:
 
-**Prerequisites:** 
-
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
-
+```bash
+python -m pip install -r backend/requirements.txt
 ```
+
+3. Run the API server:
+
+```bash
+python backend/api.py
+```
+
+4. Run the RAG CLI:
+
+```bash
+python backend/rag_chat.py en
+```
+
+## Frontend (Vite)
+
+1. Install deps:
+
+```bash
+cd frontend
+npm install
+```
+
+2. Create `.env.local` with your Base44 values:
+
+```env
 VITE_BASE44_APP_ID=your_app_id
 VITE_BASE44_APP_BASE_URL=your_backend_url
-
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
 ```
 
-Run the app: `npm run dev`
+3. Start dev server:
 
-**Publish your changes**
+```bash
+npm run dev
+```
 
-Open [Base44.com](http://Base44.com) and click on Publish.
+Open `http://127.0.0.1:5173`.
 
-**Docs & Support**
+## Data Export
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
+If you update the frontend service catalog and want to re-export the JSON used by the backend:
 
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+```bash
+node frontend/scripts/export_catalog.mjs
+```
+
+This writes to `backend/data/services_catalog.json`.
+
+## Project structure (frontend)
+
+- `frontend/src/main.jsx`: app entry point
+- `frontend/src/App.jsx`: app shell, providers, router, auth gate
+- `frontend/src/pages/Home.jsx`: main page flow
+- `frontend/src/components/gov/`: feature UI for the government-search experience
+- `frontend/src/components/ui/`: shared UI primitives
+- `frontend/src/lib/`: app state, translations, search logic, shared helpers
+- `frontend/src/data/services.js`: canonical service dataset and situation chains
+- `frontend/src/api/base44Client.js`: Base44 client setup
