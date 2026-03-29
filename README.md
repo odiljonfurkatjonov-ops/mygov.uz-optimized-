@@ -1,11 +1,11 @@
 ﻿# Gov Services App
 
-This repo contains both the frontend (Vite/React) and backend (Python NLP + RAG) for the my.gov.uz assistant.
+This repo contains both the frontend (Vite/React) and backend (Python NLP + Groq-backed RAG) for the my.gov.uz assistant.
 
 ## Layout
 
 - `frontend/` Vite React app
-- `backend/` Python NLP pipeline + API + RAG CLI
+- `backend/` Python NLP pipeline + API + Groq-backed chat CLI
 
 ## Backend (Python)
 
@@ -22,10 +22,18 @@ python -m pip install -r backend/requirements.txt
 python backend/api.py
 ```
 
-4. Run the RAG CLI:
+4. Run the Groq-backed chat CLI:
 
 ```bash
 python backend/rag_chat.py en
+```
+
+5. Create `backend/.env` for local chat provider config:
+
+```env
+CHAT_PROVIDER=groq
+GROQ_API_KEY=your_groq_key
+GROQ_MODEL=llama-3.1-8b-instant
 ```
 
 ## Frontend (Vite)

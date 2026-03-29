@@ -192,7 +192,30 @@ def _service_text(service: dict) -> str:
         parts.append(service.get(f"auth_{lang}", ""))
         parts.extend(service.get(f"documents_{lang}", []))
     parts.extend(service.get("keywords", []))
+    parts.extend(service.get("aliases", []))
     return " ".join(part for part in parts if part)
+
+
+def _build_aliases(service: dict) -> list[str]:
+    aliases: list[str] = []
+    for lang in LANGS:
+        name = _normalize_text(service.get(f"name_{lang}", ""))
+        if name:
+            aliases.append(name)
+        auth = _normalize_text(service.get(f"auth_{lang}", ""))
+        if auth:
+            aliases.append(auth)
+    for keyword in service.get("keywords", []):
+        normalized = _normalize_text(keyword)
+        if normalized:
+            aliases.append(normalized)
+    deduped: list[str] = []
+    seen = set()
+    for item in aliases:
+        if item and item not in seen:
+            deduped.append(item)
+            seen.add(item)
+    return deduped[:20]
 
 
 def _phrase_stem(service: dict, lang: str) -> str:
@@ -324,11 +347,15 @@ def _load_catalog() -> tuple[list[dict], dict, list[dict]]:
     enriched = []
     for service in services:
         override = MANUAL_OVERRIDES.get(service["id"], {})
+        aliases = _build_aliases(service)
+        intent_phrases = override.get("intent_phrases") or _build_intent_phrases(service)
         enriched.append({
             **service,
+            "aliases": aliases,
             "tags": _infer_tags(service),
-            "intent_phrases": override.get("intent_phrases") or _build_intent_phrases(service),
+            "intent_phrases": intent_phrases,
             "exclusion_phrases": override.get("exclusion_phrases") or _build_exclusion_phrases(service, service_map),
+            "search_text": _service_text({**service, "aliases": aliases, "intent_phrases": intent_phrases}),
             "primary": service["id"] in primary_ids,
         })
 

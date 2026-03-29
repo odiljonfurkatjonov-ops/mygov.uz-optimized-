@@ -9,7 +9,7 @@ const ChatBot = () => {
 	const [messages, setMessages] = useState([
 		{
 			role: 'assistant',
-			content: 'Hello! Ask me about government services and I will guide you.'
+			content: 'Hello! I am Abdullajon AI. Ask me about government services and I will guide you.'
 		}
 	]);
 	const [input, setInput] = useState('');
@@ -72,13 +72,15 @@ const ChatBot = () => {
 		}
 
 		if (response.error) {
+			const fallbackMessage = response.error || 'Sorry, Abdullajon AI is not available right now.';
+
 			setMessages((prev) => {
 				const next = [...prev];
 				const idx = next.findIndex((msg) => msg.role === 'assistant' && msg.content === '');
 				if (idx !== -1) {
-					next[idx] = { ...next[idx], content: 'Sorry, the assistant is not available right now.' };
+					next[idx] = { ...next[idx], content: fallbackMessage };
 				} else {
-					next.push({ role: 'assistant', content: 'Sorry, the assistant is not available right now.' });
+					next.push({ role: 'assistant', content: fallbackMessage });
 				}
 				return next;
 			});
@@ -100,7 +102,7 @@ const ChatBot = () => {
 				<div className="mb-4 w-[340px] overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white shadow-hover">
 					<div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
 						<div>
-							<div className="text-sm font-semibold text-[var(--color-text-primary)]">AI Assistant</div>
+							<div className="text-sm font-semibold text-[var(--color-text-primary)]">Abdullajon AI</div>
 							<div className="text-xs text-[var(--color-text-secondary)]">Powered by my.gov.uz data</div>
 						</div>
 						<button
@@ -135,7 +137,7 @@ const ChatBot = () => {
 								onChange={(event) => setInput(event.target.value)}
 								onKeyDown={handleKeyDown}
 								className="flex-1 resize-none bg-transparent text-sm text-[var(--color-text-primary)] outline-none"
-								placeholder="Ask about a service..."
+								placeholder="Ask Abdullajon AI about a service..."
 							/>
 							<button
 								className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)]"

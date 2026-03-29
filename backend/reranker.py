@@ -49,7 +49,10 @@ class HybridReranker:
             service_record.get(f"name_{lang}", ""),
             service_record.get("name_en", ""),
             service_record.get(f"description_{lang}", ""),
+            service_record.get(f"auth_{lang}", ""),
+            service_record.get("category", ""),
             " ".join(service_record.get(f"documents_{lang}", [])),
+            " ".join(service_record.get("aliases", [])),
         ]).lower()
 
         concept_match_bonus = 0.0
@@ -76,11 +79,19 @@ class HybridReranker:
                 exclusion_penalty = max(exclusion_penalty, 1.0)
 
         confusion_penalty = 0.0
-        if service_record.get("similar_ids"):
-            tractor_terms = {"traktor", "tractor", "трактор"}
-            driver_terms = {"haydovchilik", "driver", "водительское", "prava"}
-            duplicate_terms = {"duplicate", "dublikat", "takroriy", "lost", "утеряно", "yo'qolgan"}
+        tractor_terms = {"traktor", "tractor", "???????"}
+        driver_terms = {"haydovchilik", "driver", "????????????", "prava"}
+        duplicate_terms = {"duplicate", "dublikat", "takroriy", "lost", "???????", "yo'qolgan", "replacement", "reissue"}
 
+        if query_tokens & duplicate_terms:
+            if "duplicate_document" in service_tags:
+                intent_phrase_match_bonus = max(intent_phrase_match_bonus, 1.15)
+                if "childbirth" in service_tags:
+                    intent_phrase_match_bonus += 0.35
+            elif "childbirth" in service_tags and "duplicate_document" not in service_tags:
+                confusion_penalty += 1.1
+
+        if service_record.get("similar_ids"):
             if service_record["id"] == 6001 and query_tokens & tractor_terms:
                 confusion_penalty += 1.0
             if service_record["id"] == 6099 and query_tokens & driver_terms and not (query_tokens & tractor_terms):

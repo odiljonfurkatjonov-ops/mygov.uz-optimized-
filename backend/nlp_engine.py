@@ -63,7 +63,8 @@ def detect_language(text: str) -> str:
         return "kk"
     if cyrillic > latin:
         return "ru" if tokens & russian_markers else "kk"
-    return "en" if any(token in {"the", "my", "what", "next", "application", "documents", "baby", "child"} for token in tokens) else "uz"
+    english_markers = {"the", "my", "what", "next", "application", "documents", "baby", "child", "i", "need", "take", "loan", "mortgage", "house", "buy", "help", "want", "apply"}
+    return "en" if any(token in english_markers for token in tokens) else "uz"
 
 
 def _detect_token_language(token: str, fallback: str = "uz") -> str:

@@ -1,4 +1,2 @@
-﻿ollama
 numpy
 groq
-
